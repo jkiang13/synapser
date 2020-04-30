@@ -15,9 +15,9 @@ import importlib
 import pkg_resources
 import glob
 import zipfile
+import inspect
 import subprocess
 from patchStdoutStdErr import patch_stdout_stderr
-import time
 
 # in a stable way across python versions. the typical approach is to
 # call pip in a subprocess using sys.executable, but running inside
@@ -51,6 +51,7 @@ def addLocalSitePackageToPythonPath(root):
         os.environ['PYTHONPATH'] += os.pathsep+eggpath
         sys.path.append(eggpath)
 
+
 def main(path):
     patch_stdout_stderr()
 
@@ -79,9 +80,10 @@ def main(path):
 #    call_pip('MarkupSafe==1.0', localSitePackages)
 #    call_pip('Jinja2==2.8.1', localSitePackages)
 
-    out_path = "/tmp/debug.out"
-    if 'win' in platform.platform().lower():
-        out_path = "c:/debug.out"
+    for out_path in ('/tmp/debug.txt', 'c:/debug.txt'):
+        with open(out_path, 'w') as out_file:
+            out_file.write(platform.platform() + '\n')
+            break
 
     with open(out_path, 'a') as out_file:
        out_file.write(executable)
@@ -95,7 +97,6 @@ def main(path):
        out_file.write(os.environ['PYTHONPATH'])
        out_file.write('\n')
        out_file.write(os.__file__)
-
 
     #time.sleep(1000)
     with open(out_path, 'a') as out_file:
