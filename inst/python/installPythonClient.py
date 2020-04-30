@@ -112,7 +112,7 @@ def main(path):
         'pandas==0.22',
         'synapseclient==2.0.0',
     ):
-        rc = subprocess.call([interpreter, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages], stdout=out_file, stderr=out_file)
+        rc = subprocess.call([interpreter, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages])
         if rc != 0:
             raise Exception("pip.main returned {} when installing {}".format(rc, package))
 
