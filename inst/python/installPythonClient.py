@@ -85,10 +85,17 @@ def main(path):
 
     with open(out_path, 'a') as out_file:
        out_file.write(executable)
+       out_file.write('\n')
        out_file.write(install_target)
-       out_file.write('\n' + localSitePackages)
-       time.sleep(100)
+       out_file.write('\n')
+       out_file.write(localSitePackages)
+       out_file.write('\n') 
+       out_file.write(os.environ('PATH')
+       out_file.write('\n') 
+       out_file.write(os.environ('PYTHONPATH')
+       out_file.write('\n')
 
+    with open(out_path, 'a') as out_file:
        for package in (
            'pandas==0.22',
            'certifi',
