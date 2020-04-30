@@ -90,65 +90,59 @@ def main(path):
     addLocalSitePackageToPythonPath(moduleInstallationPrefix)
 
     os.makedirs(localSitePackages)
-    install_target = "Installing to {}".format(localSitePackages)
-    target_exists = "Exists? {}".format(os.path.exists(localSitePackages))
-    target_is_dir = "is dir {}".format(os.path.isdir(localSitePackages))
-    executable = "executable {}".format(sys.executable)
-    print(install_target)
-    print(target_exists)
-    print(target_is_dir)
 
+    # Jinja2 depends on MarkupSafe
+    packageName = "MarkupSafe-1.0"
+    linkPrefix = "https://pypi.python.org/packages/4d/de/32d741db316d8fdb7680822dd37001ef7a448255de9699ab4bfcbdf4172b/"
+    installedPackageFolderName="markupsafe"
+    simplePackageInstall(packageName, installedPackageFolderName, linkPrefix, path, localSitePackages)
+    addLocalSitePackageToPythonPath(moduleInstallationPrefix)
+    #import markupsafe  # This fails intermittently
 
-    
-    # The preferred approach to install a package is to use pip...
-#    call_pip('pandas==0.22', localSitePackages)
-#    call_pip('certifi', localSitePackages) 
-#    call_pip('synapseclient==2.0.0', localSitePackages)
-#    call_pip('MarkupSafe==1.0', localSitePackages)
-#    call_pip('Jinja2==2.8.1', localSitePackages)
-
-    for out_path in ('/tmp/debug.txt', 'c:/debug.txt'):
-        try:
-            with open(out_path, 'w') as out_file:
-                out_file.write(platform.platform() + '\n')
-                break
-        except:
-            pass
+    packageName = "Jinja2-2.8.1"
+    linkPrefix = "https://pypi.python.org/packages/5f/bd/5815d4d925a2b8cbbb4b4960f018441b0c65f24ba29f3bdcfb3c8218a307/"
+    installedPackageFolderName="jinja2"
+    simplePackageInstall(packageName, installedPackageFolderName, linkPrefix, path, localSitePackages)
+    addLocalSitePackageToPythonPath(moduleInstallationPrefix)
+    #import jinja2 # This fails intermittently
 
     interpreter = _find_python_interpreter()
 
-    with open(out_path, 'a') as out_file:
-       out_file.write(executable)
-       out_file.write('\n')
-       out_file.write(install_target)
-       out_file.write('\n')
-       out_file.write(localSitePackages)
-       out_file.write('\n') 
-       out_file.write(os.environ['PATH'])
-       out_file.write('\n') 
-       out_file.write(os.environ['PYTHONPATH'])
-       out_file.write('\n')
-       out_file.write(os.__file__)
-
-    #time.sleep(1000)
-    with open(out_path, 'a') as out_file:
-       for package in (
-           'pandas==0.22',
-           'certifi',
-           'synapseclient==2.0.0',
-           'MarkupSafe==1.0',
-           'Jinja2==2.8.1'
-       ):
-           rc = subprocess.call([interpreter, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages], stdout=out_file, stderr=out_file)
-           if rc != 0:
-               raise Exception("pip.main returned {} when installing {}".format(rc, package))
+    for package in (
+        'pandas==0.22',
+        'synapseclient==2.0.0',
+    ):
+        rc = subprocess.call([interpreter, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages], stdout=out_file, stderr=out_file)
+        if rc != 0:
+            raise Exception("pip.main returned {} when installing {}".format(rc, package))
 
     addLocalSitePackageToPythonPath(moduleInstallationPrefix) 
 
 
-# pip installs in the wrong place (ends up being in the PythonEmbedInR package rather than this one)
-def call_pip(packageName, target):
-        rc = pipmain(['install', packageName, '--upgrade', '--quiet', '--target', target])
-        if rc!=0:
-            raise Exception('pip.main returned '+str(rc))
+# unzip directly into localSitePackages/installedPackageFolderName
+# This is a workaround for the cases in which 'pip' and 'setup.py' fail.
+# (They fail for MarkupSafe and Jinja2, without providing any info about what went wrong.)
+def simplePackageInstall(packageName, installedPackageFolderName, linkPrefix, path, localSitePackages):
+    # download 
+    zipFileName = packageName + ".tar.gz"
+    localZipFile = path+os.sep+zipFileName
+    x = urllib.request.urlopen(linkPrefix+zipFileName)
+    saveFile = open(localZipFile,'wb')
+    saveFile.write(x.read())
+    saveFile.close()
+    
+    tar = tarfile.open(localZipFile)
+    tar.extractall(path=path)
+    tar.close()
+    os.remove(localZipFile)
 
+    packageDir = path+os.sep+packageName
+    os.chdir(packageDir)
+    
+    # inside 'packageDir' there's a folder to move to localSitePackages
+    shutil.move(packageDir+os.sep+installedPackageFolderName, localSitePackages)
+        
+    os.chdir(path)
+    shutil.rmtree(packageDir)
+    
+    sys.path.append(localSitePackages+os.sep+installedPackageFolderName)
