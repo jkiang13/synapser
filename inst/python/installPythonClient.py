@@ -63,6 +63,13 @@ def main(path):
 
     # The preferred approach to install a package is to use pip...
     call_pip('pandas==0.22', localSitePackages)
+    call_pip('certifi', localSitePackages) 
+    try:
+        import certifi
+        print("Certifi load succeeded")
+    except ImportError:
+        print("Certifi load failed")
+
 #     # check that the installation worked
 #    addLocalSitePackageToPythonPath(moduleInstallationPrefix)
 #     import pandas# This fails intermittently
