@@ -15,6 +15,7 @@ import importlib
 import pkg_resources
 import glob
 import zipfile
+import subprocess
 from patchStdoutStdErr import patch_stdout_stderr
 
 # in a stable way across python versions. the typical approach is to
@@ -63,23 +64,37 @@ def main(path):
     install_target = "Installing to {}".format(localSitePackages)
     target_exists = "Exists? {}".format(os.path.exists(localSitePackages))
     target_is_dir = "is dir {}".format(os.path.isdir(localSitePackages))
+    executable = "executable {}".format(sys.executable)
     print(install_target)
     print(target_exists)
     print(target_is_dir)
+
     with open('/tmp/target_info', 'w') as out_file:
+        out_file.write(executable)
         out_file.write(install_target)
         out_file.write('\n')
         out_file.write(target_exists)
         out_file.write('\n')
         out_file.write(target_is_dir)
 
-
+    
     # The preferred approach to install a package is to use pip...
-    call_pip('pandas==0.22', localSitePackages)
-    call_pip('certifi', localSitePackages) 
-    call_pip('synapseclient==2.0.0', localSitePackages)
-    call_pip('MarkupSafe==1.0', localSitePackages)
-    call_pip('Jinja2==2.8.1', localSitePackages) 
+#    call_pip('pandas==0.22', localSitePackages)
+#    call_pip('certifi', localSitePackages) 
+#    call_pip('synapseclient==2.0.0', localSitePackages)
+#    call_pip('MarkupSafe==1.0', localSitePackages)
+#    call_pip('Jinja2==2.8.1', localSitePackages)
+    for package in (
+        'pandas==0.22',
+        'certifi',
+        'synapseclient==2.0.0',
+        'MarkupSafe==1.0',
+        'Jinja2==2.8.1'
+    ):
+        rc = subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "--quiet", "--target", target])
+        if rc != 0:
+            raise Exception("pip.main returned {} when installing {}".format(rc, package))
+ 
 
 # pip installs in the wrong place (ends up being in the PythonEmbedInR package rather than this one)
 def call_pip(packageName, target):
