@@ -60,9 +60,19 @@ def main(path):
     addLocalSitePackageToPythonPath(moduleInstallationPrefix)
 
     os.makedirs(localSitePackages)
-    print("Installing to {}".format(localSitePackages))
-    print("Exists?" + os.path.exists(localSitePackages))
-    print("is dir?" + os.path.isdir(localSitePackages))
+    install_target = "Installing to {}".format(localSitePackages)
+    target_exists = "Exists? {}".format(os.path.exists(localSitePackages))
+    target_is_dir = "is dir {}".format(os.path.isdir(localSitePackages))
+    print(install_target)
+    print(target_exists)
+    print(target_is_dir)
+    with open('/tmp/target_info', 'w') as out_file:
+        out_file.write(install_target)
+        out_file.write('\n')
+        out_file.write(target_exists)
+        out_file.write('\n')
+        out_file.write(target_is_dir)
+
 
     # The preferred approach to install a package is to use pip...
     call_pip('pandas==0.22', localSitePackages)
