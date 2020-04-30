@@ -91,6 +91,26 @@ def main(path):
 
     os.makedirs(localSitePackages)
 
+    # the recommended way to call pip at runtime is by invoking a subprocess,
+    # but that's complicated by the fact that we don't know where the python
+    # interpreter is. usually you can do sys.executable but in the embedded
+    # context sys.executable is R, not python. So we do a heuristic that to
+    # find the interpreter. this seems to work better here than calling main
+    # on pip directly which doesn't work on windows.
+    interpreter = _find_python_interpreter()
+    for package in (
+        'pandas==0.22',
+        'synapseclient==2.0.0',
+
+        # >= python 3.6 is not linked to the certificate store on macs without
+        # an extra script being run on the machine, which we don't really have
+        # access to. we install certifi to get SSL certs within python.
+        'certifi'
+    ):
+        rc = subprocess.call([interpreter, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages])
+        if rc != 0:
+            raise Exception("pip.main returned {} when installing {}".format(rc, package))
+
     # Jinja2 depends on MarkupSafe
     packageName = "MarkupSafe-1.0"
     linkPrefix = "https://pypi.python.org/packages/4d/de/32d741db316d8fdb7680822dd37001ef7a448255de9699ab4bfcbdf4172b/"
@@ -106,18 +126,8 @@ def main(path):
     addLocalSitePackageToPythonPath(moduleInstallationPrefix)
     #import jinja2 # This fails intermittently
 
-    interpreter = _find_python_interpreter()
-
-    for package in (
-        'pandas==0.22',
-        'synapseclient==2.0.0',
-    ):
-        rc = subprocess.call([interpreter, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages])
-        if rc != 0:
-            raise Exception("pip.main returned {} when installing {}".format(rc, package))
 
     addLocalSitePackageToPythonPath(moduleInstallationPrefix) 
-
 
 # unzip directly into localSitePackages/installedPackageFolderName
 # This is a workaround for the cases in which 'pip' and 'setup.py' fail.
