@@ -108,9 +108,12 @@ def main(path):
 #    call_pip('Jinja2==2.8.1', localSitePackages)
 
     for out_path in ('/tmp/debug.txt', 'c:/debug.txt'):
-        with open(out_path, 'w') as out_file:
-            out_file.write(platform.platform() + '\n')
-            break
+        try:
+            with open(out_path, 'w') as out_file:
+                out_file.write(platform.platform() + '\n')
+                break
+        except:
+            pass
 
     interpreter = _find_python_interpreter()
 
