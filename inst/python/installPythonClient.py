@@ -51,7 +51,7 @@ def addLocalSitePackageToPythonPath(root):
 
 def main(path):
     patch_stdout_stderr()
-    
+
     path = pkg_resources.normalize_path(path)
     moduleInstallationPrefix=path+os.sep+"inst"
 
@@ -64,129 +64,13 @@ def main(path):
     # The preferred approach to install a package is to use pip...
     call_pip('pandas==0.22', localSitePackages)
     call_pip('certifi', localSitePackages) 
-    try:
-        import certifi
-        print("Certifi load succeeded")
-    except ImportError:
-        print("Certifi load failed")
-
-#     # check that the installation worked
-#    addLocalSitePackageToPythonPath(moduleInstallationPrefix)
-#     import pandas# This fails intermittently
-
-    # ...but - for some reason - pip breaks when we install the python synapse client
-    # So we use 'setup' directly
-    packageName = "synapseclient-2.0.0"
-    
-    if 'PYTHON_CLIENT_GITHUB_USERNAME' in os.environ and 'PYTHON_CLIENT_GITHUB_BRANCH' in os.environ:
-        pythonClientGithubUsername = os.environ['PYTHON_CLIENT_GITHUB_USERNAME']
-        pythonClientGithubBranch = os.environ['PYTHON_CLIENT_GITHUB_BRANCH']
-        archivePrefix="synapsePythonClient-"+pythonClientGithubBranch
-        archiveSuffix=".zip"
-        url="https://github.com/"+pythonClientGithubUsername+"/synapsePythonClient/archive/"+pythonClientGithubBranch+archiveSuffix
-    else:
-        archivePrefix=packageName
-        urlPrefix = "https://files.pythonhosted.org/packages/6f/ea/eb321bc1449d4ec17b46c55f57ac8184da3d082cbd8833eff6ba8aafc175/"
-        archiveSuffix = ".tar.gz"
-        url = urlPrefix+archivePrefix+archiveSuffix
-    
-    installPackage(packageName, url, archivePrefix, archiveSuffix, path, moduleInstallationPrefix)
-        
-    # check that the installation worked
-    addLocalSitePackageToPythonPath(moduleInstallationPrefix)
-    import synapseclient
-    
-    # When trying to 'synStore' a table we get the error:
-    # pandas.Styler requires jinja2. Please install with `conda install Jinja2`
-    # So let's install Jinja2 here:
-    # https://stackoverflow.com/questions/43163201/pyinstaller-syntax-error-yield-inside-async-function-python-3-5-1
-
-    # Jinja2 depends on MarkupSafe
-    packageName = "MarkupSafe-1.0"
-    linkPrefix = "https://pypi.python.org/packages/4d/de/32d741db316d8fdb7680822dd37001ef7a448255de9699ab4bfcbdf4172b/"
-    installedPackageFolderName="markupsafe"
-    simplePackageInstall(packageName, installedPackageFolderName, linkPrefix, path, localSitePackages)
-    addLocalSitePackageToPythonPath(moduleInstallationPrefix)
-    #import markupsafe  # This fails intermittently
-
-    packageName = "Jinja2-2.8.1"
-    linkPrefix = "https://pypi.python.org/packages/5f/bd/5815d4d925a2b8cbbb4b4960f018441b0c65f24ba29f3bdcfb3c8218a307/"
-    installedPackageFolderName="jinja2"
-    simplePackageInstall(packageName, installedPackageFolderName, linkPrefix, path, localSitePackages)
-    addLocalSitePackageToPythonPath(moduleInstallationPrefix)
-    #import jinja2 # This fails intermittently
+    call_pip('synapseclient==2.0.0', localSitePackages)
+    call_pip('MarkupSafe==1.0', localSitePackages)
+    call_pip('Jinja2==2.8.1', localSitePackages) 
 
 # pip installs in the wrong place (ends up being in the PythonEmbedInR package rather than this one)
 def call_pip(packageName, target):
         rc = pipmain(['install', packageName, '--upgrade', '--quiet', '--target', target])
         if rc!=0:
             raise Exception('pip.main returned '+str(rc))
-
-    
-# unzip directly into localSitePackages/installedPackageFolderName
-# This is a workaround for the cases in which 'pip' and 'setup.py' fail.
-# (They fail for MarkupSafe and Jinja2, without providing any info about what went wrong.)
-def simplePackageInstall(packageName, installedPackageFolderName, linkPrefix, path, localSitePackages):
-    # download 
-    zipFileName = packageName + ".tar.gz"
-    localZipFile = path+os.sep+zipFileName
-    x = urllib.request.urlopen(linkPrefix+zipFileName)
-    saveFile = open(localZipFile,'wb')
-    saveFile.write(x.read())
-    saveFile.close()
-    
-    tar = tarfile.open(localZipFile)
-    tar.extractall(path=path)
-    tar.close()
-    os.remove(localZipFile)
-
-    packageDir = path+os.sep+packageName
-    os.chdir(packageDir)
-    
-    # inside 'packageDir' there's a folder to move to localSitePackages
-    shutil.move(packageDir+os.sep+installedPackageFolderName, localSitePackages)
-        
-    os.chdir(path)
-    shutil.rmtree(packageDir)
-    
-    sys.path.append(localSitePackages+os.sep+installedPackageFolderName)
-
-def installPackage(packageName, url, archivePrefix, archiveSuffix, path, moduleInstallationPrefix):
-    # download 
-    zipFileName = archivePrefix + archiveSuffix
-    localZipFile = path+os.sep+zipFileName
-    x = urllib.request.urlopen(url)
-    saveFile = open(localZipFile,'wb')
-    saveFile.write(x.read())
-    saveFile.close()
-    
-    if archiveSuffix==".tar.gz":
-        tar = tarfile.open(localZipFile)
-        tar.extractall(path=path)
-        tar.close()
-    elif archiveSuffix==".zip":
-        zipFile=zipfile.ZipFile(localZipFile)
-        zipFile.extractall(path=path)
-        zipFile.close()
-    else:
-        raise Exception("Unexpected suffix "+suffix)
-    
-    os.remove(localZipFile)
-        
-    packageDir = path+os.sep+archivePrefix
-    os.chdir(packageDir)
-    
-    orig_sys_path = sys.path
-    orig_sys_argv = sys.argv
-    sys.path = ['.'] + sys.path
-    sys.argv = ['setup.py', 'install', '--prefix='+moduleInstallationPrefix]
-
-    try:
-        importlib.import_module("setup")
-    finally:
-        sys.path=orig_sys_path
-        sys.argv=orig_sys_argv
-        # leave the folder we're about to delete
-        os.chdir(path)
-        shutil.rmtree(packageDir)
 
