@@ -69,13 +69,6 @@ def main(path):
     print(target_exists)
     print(target_is_dir)
 
-    with open('/tmp/target_info', 'w') as out_file:
-        out_file.write(executable)
-        out_file.write(install_target)
-        out_file.write('\n')
-        out_file.write(target_exists)
-        out_file.write('\n')
-        out_file.write(target_is_dir)
 
     
     # The preferred approach to install a package is to use pip...
@@ -84,16 +77,25 @@ def main(path):
 #    call_pip('synapseclient==2.0.0', localSitePackages)
 #    call_pip('MarkupSafe==1.0', localSitePackages)
 #    call_pip('Jinja2==2.8.1', localSitePackages)
-    for package in (
-        'pandas==0.22',
-        'certifi',
-        'synapseclient==2.0.0',
-        'MarkupSafe==1.0',
-        'Jinja2==2.8.1'
-    ):
-        rc = subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "--quiet", "--target", localSitePackages])
-        if rc != 0:
-            raise Exception("pip.main returned {} when installing {}".format(rc, package))
+
+    out_path = "/tmp/debug.out"
+    if 'win' in platform.platform().lower():
+        out_path = "c:/debug.out"
+
+    with open(out_path, 'a') as out_file:
+       out_file.write(executable)
+
+       for package in (
+           'pandas==0.22',
+           'certifi',
+           'synapseclient==2.0.0',
+           'MarkupSafe==1.0',
+           'Jinja2==2.8.1'
+       ):
+           with open(:1
+           rc = subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "--quiet", "--target", localSitePackages], stdout=out_file, stderr=out_file)
+           if rc != 0:
+               raise Exception("pip.main returned {} when installing {}".format(rc, package))
 
     addLocalSitePackageToPythonPath(moduleInstallationPrefix) 
 
