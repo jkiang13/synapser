@@ -17,6 +17,7 @@ import glob
 import zipfile
 import subprocess
 from patchStdoutStdErr import patch_stdout_stderr
+import time
 
 # in a stable way across python versions. the typical approach is to
 # call pip in a subprocess using sys.executable, but running inside
@@ -84,6 +85,8 @@ def main(path):
 
     with open(out_path, 'a') as out_file:
        out_file.write(executable)
+       out_file.write('\n' + localSitePackages)
+       time.sleep(100)
 
        for package in (
            'pandas==0.22',
