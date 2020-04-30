@@ -186,6 +186,10 @@ elif  [[ $label = $WINDOWS_LABEL_PREFIX* ]]; then
   ZIP_TARGET_NAME=${PACKAGE_NAME}_${PACKAGE_VERSION}.zip
   if [ ! -f ${ZIP_TARGET_NAME} ]; then
     echo ${ZIP_TARGET_NAME} 'is not found.  Will zip the package now.'
+
+    echo "zipping dir $RLIB_DIR"
+    sleep 600
+
     PWD=`pwd`
     cd $RLIB_DIR
     zip -r9Xq ${ZIP_TARGET_NAME} ${PACKAGE_NAME}
