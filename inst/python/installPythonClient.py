@@ -90,9 +90,9 @@ def main(path):
        out_file.write('\n')
        out_file.write(localSitePackages)
        out_file.write('\n') 
-       out_file.write(os.environ('PATH')
+       out_file.write(os.environ['PATH'])
        out_file.write('\n') 
-       out_file.write(os.environ('PYTHONPATH')
+       out_file.write(os.environ['PYTHONPATH'])
        out_file.write('\n')
 
     with open(out_path, 'a') as out_file:
