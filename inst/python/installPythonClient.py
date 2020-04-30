@@ -94,9 +94,10 @@ def main(path):
        out_file.write('\n') 
        out_file.write(os.environ['PYTHONPATH'])
        out_file.write('\n')
+       out_file.write(os.__file__)
 
 
-    time.sleep(1000)
+    #time.sleep(1000)
     with open(out_path, 'a') as out_file:
        for package in (
            'pandas==0.22',
