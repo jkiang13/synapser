@@ -85,6 +85,7 @@ def main(path):
 
     with open(out_path, 'a') as out_file:
        out_file.write(executable)
+       out_file.write(install_target)
        out_file.write('\n' + localSitePackages)
        time.sleep(100)
 
