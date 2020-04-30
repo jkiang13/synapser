@@ -57,7 +57,7 @@ def main(path):
     moduleInstallationPrefix=path+os.sep+"inst"
 
     localSitePackages=localSitePackageFolder(moduleInstallationPrefix)
-    
+
     addLocalSitePackageToPythonPath(moduleInstallationPrefix)
 
     os.makedirs(localSitePackages)
@@ -91,10 +91,12 @@ def main(path):
         'MarkupSafe==1.0',
         'Jinja2==2.8.1'
     ):
-        rc = subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "--quiet", "--target", target])
+        rc = subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "--quiet", "--target", localSitePackages)
         if rc != 0:
             raise Exception("pip.main returned {} when installing {}".format(rc, package))
- 
+
+    addLocalSitePackageToPythonPath(moduleInstallationPrefix) 
+
 
 # pip installs in the wrong place (ends up being in the PythonEmbedInR package rather than this one)
 def call_pip(packageName, target):
