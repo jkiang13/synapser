@@ -92,8 +92,7 @@ def main(path):
            'MarkupSafe==1.0',
            'Jinja2==2.8.1'
        ):
-           with open(:1
-           rc = subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "--quiet", "--target", localSitePackages], stdout=out_file, stderr=out_file)
+           rc = subprocess.call([sys.executable, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages], stdout=out_file, stderr=out_file)
            if rc != 0:
                raise Exception("pip.main returned {} when installing {}".format(rc, package))
 
