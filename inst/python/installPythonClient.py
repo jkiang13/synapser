@@ -52,6 +52,33 @@ def addLocalSitePackageToPythonPath(root):
         sys.path.append(eggpath)
 
 
+def _find_python_interpreter():
+    possible_interpreter_filenames = [
+        'python',
+        'python{}'.format(sys.version_info.major),
+        'python{}.{}'.format(sys.version_info.major, sys.version_info.minor),
+    ]
+    possible_interpreter_filenames.extend(['{}.exe'.format(f) for f in possible_interpreter_filenames])
+    possible_interpreter_filenames.extend([os.path.join('bin', f).format(f) for f in possible_interpreter_filenames])
+
+    last_path = None
+    path = inspect.getfile(os)
+    while(path and path != last_path):
+        for f in possible_interpreter_filenames:
+            file_path = os.path.join(path, f)
+            print(file_path)
+            if os.path.isfile(file_path) and os.access(file_path, os.X_OK):
+                return file_path
+
+        last_path = path
+        path = os.path.dirname(path)
+
+    # if we didn't find anything we'll hope there is any 'python3' interpreter on the path.
+    # we're just going to use it to install some modules into a specific directory
+    # so it doesn't actually even have to be the one bundled with PythonEmbedInR
+    return 'python{}'.format(sys.version_info.major)
+
+
 def main(path):
     patch_stdout_stderr()
 
@@ -85,6 +112,8 @@ def main(path):
             out_file.write(platform.platform() + '\n')
             break
 
+    interpreter = _find_python_interpreter()
+
     with open(out_path, 'a') as out_file:
        out_file.write(executable)
        out_file.write('\n')
@@ -107,7 +136,7 @@ def main(path):
            'MarkupSafe==1.0',
            'Jinja2==2.8.1'
        ):
-           rc = subprocess.call([sys.executable, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages], stdout=out_file, stderr=out_file)
+           rc = subprocess.call([interpreter, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages], stdout=out_file, stderr=out_file)
            if rc != 0:
                raise Exception("pip.main returned {} when installing {}".format(rc, package))
 
