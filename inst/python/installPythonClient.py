@@ -66,7 +66,6 @@ def _find_python_interpreter():
     while(path and path != last_path):
         for f in possible_interpreter_filenames:
             file_path = os.path.join(path, f)
-            print(file_path)
             if os.path.isfile(file_path) and os.access(file_path, os.X_OK):
                 return file_path
 
@@ -127,13 +126,7 @@ def main(path):
         #import jinja2 # This fails intermittently
 
     interpreter = _find_python_interpreter()
-    for package in (
-    
-        # >= python 3.6 is not linked to the certificate store on macs without
-        # an extra script being run on the machine, which we don't really have
-        # access to. we install certifi to get SSL certs within python.
-        #'certifi'
-    ):
+    for package in pip_packages:
         rc = subprocess.call([interpreter, "-m", "pip", "install", package, "--upgrade", "--quiet", "--target", localSitePackages])
         if rc != 0:
             raise Exception("pip.main returned {} when installing {}".format(rc, package))
